@@ -1,0 +1,40 @@
+imports:
+- path: hub/fortigate-security-hub.jinja
+  name: fortigate-security-hub.jinja
+- path: fortigate/ha-ap-elb.jinja
+  name: fortigate.jinja
+- path: labservers.jinja
+
+resources:
+- name: SecurityHub
+  type: fortigate-security-hub.jinja
+  properties:
+    prefix: bm-lab
+    region: europe-west1
+    zones:
+    - europe-west1-d
+    - europe-west1-b
+    fgtInstanceType: e2-highcpu-4
+    version: 6.2.3
+    license:
+      type: payg
+    spokeNetworks:
+    - name: front
+      ipCidrRange: 192.168.1.0/24
+    - name: back
+      ipCidrRange: 192.168.2.0/24
+    publicIPs:
+    - name: app1
+- name: servers
+  type: labservers.jinja
+  properties:
+    region: europe-west1
+    prefix: bm-lab
+
+outputs:
+  - name: Management_IP
+    value: $(ref.SecurityHub.Management_IP)
+  - name: Default_Password
+    value: $(ref.SecurityHub.Default_Password)
+  - name: Service_Public_IP
+    value: $(ref.SecurityHub.Service_IP)

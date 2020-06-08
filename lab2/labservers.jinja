@@ -1,0 +1,43 @@
+resources:
+- name: {{ properties.prefix}}-webserver
+  type: compute.v1.instance
+  properties:
+    zone: {{ properties.region }}-b
+    machineType: zones/{{ properties.region }}-b/machineTypes/f1-micro
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200529
+    networkInterfaces:
+    - network: $(ref.{{ properties.prefix }}-front.selfLink)
+      subnetwork: $(ref.{{ properties.prefix }}-front-subnet.selfLink)
+    tags:
+      items:
+        - webserver
+    metadata:
+      items:
+      - key: serial-port-enable
+        value: "true"
+      - key: startup-script
+        value: |
+          sudo apt-get update && sudo apt-get install nginx -y
+          ping 192.168.2.2
+
+- name: {{ properties.prefix }}-backserver
+  type: compute.v1.instance
+  properties:
+    zone: {{ properties.region }}-b
+    machineType: zones/{{ properties.region }}-b/machineTypes/f1-micro
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200529
+    networkInterfaces:
+    - network: $(ref.{{ properties.prefix }}-back.selfLink)
+      subnetwork: $(ref.{{ properties.prefix }}-back-subnet.selfLink)

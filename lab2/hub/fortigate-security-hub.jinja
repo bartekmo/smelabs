@@ -1,0 +1,108 @@
+{% import "../utils/fgtconfig.jinja" as fgtconfig %}
+
+{% set prefix = properties.prefix|default(env.deployment) %}
+
+resources:
+- name: HubVPC
+  type: vpc.jinja
+  properties:
+    prefix: {{ prefix }}
+    region: {{ properties.region }}
+    hubNetworks: {{properties.hubNetworks }}
+    spokeNetworks: {{ properties.spokeNetworks }}
+- name: Fortigate_Cluster
+  type: fortigate.jinja
+  properties:
+    prefix: {{ prefix }}
+    region: {{ properties.region }}
+    zones: {{ properties.zones }}
+    instanceType: {{ properties.fgtInstanceType }}
+    serviceAccount: {{ properties.fgtServiceAccount }}
+    license: {{ properties.license }}
+    version: {{ properties.version }}
+    fwConfig: |
+      {{ fgtconfig.configSpokeAddresses( prefix, properties.spokeNetworks )|indent(6) }}
+      config firewall vip
+          edit "webserver"
+              set extintf "port1"
+              set extip "10.0.0.2"
+              set portforward enable
+              set mappedip "192.168.1.2"
+              set extport 80
+              set mappedport 80
+          next
+      end
+      config firewall policy
+        edit 1
+            set name "front-out"
+            set srcintf "port2"
+            set dstintf "port1"
+            set srcaddr "{{prefix}}-front"
+            set dstaddr "all"
+            set action accept
+            set schedule "always"
+            set service "ALL"
+            set logtraffic all
+            set logtraffic-start enable
+            set nat enable
+        next
+        edit 2
+            set name "front-to-back"
+            set srcintf "port2"
+            set dstintf "port2"
+            set srcaddr "{{prefix}}-front"
+            set dstaddr "{{prefix}}-back"
+            set action accept
+            set schedule "always"
+            set service "ALL"
+            set logtraffic all
+            set logtraffic-start enable
+        next
+        edit 3
+            set name "http-to-webserver"
+            set srcintf "port1"
+            set dstintf "port2"
+            set srcaddr "all"
+            set dstaddr "webserver"
+            set action accept
+            set schedule "always"
+            set service "HTTP"
+            set utm-status enable
+            set ssl-ssh-profile "certificate-inspection"
+            set ips-sensor "default"
+            set logtraffic all
+            set logtraffic-start enable
+        next
+      end
+    networks:
+      internal:
+        vpc: $(ref.HubVPC.hubVpcRef)
+        subnet: $(ref.HubVPC.hubSubnetRef)
+        ipCidrRange: {{ properties.hubNetworks.internal.ipCidrRange }}
+      external:
+        vpc: $(ref.HubVPC.extVpcRef)
+        subnet: $(ref.HubVPC.extSubnetRef)
+        ipCidrRange: {{ properties.hubNetworks.external.ipCidrRange }}
+      hasync:
+        vpc: $(ref.HubVPC.haVpcRef)
+        subnet: $(ref.HubVPC.haSubnetRef)
+        ipCidrRange: {{ properties.hubNetworks.hasync.ipCidrRange }}
+      mgmt:
+        vpc: $(ref.HubVPC.mgmtVpcRef)
+        subnet: $(ref.HubVPC.mgmtSubnetRef)
+        ipCidrRange: {{ properties.hubNetworks.mgmt.ipCidrRange }}
+    publicIPs: {{ properties.publicIPs }}
+    routes:
+    - destRange: 0.0.0.0/0
+      name: default
+      priority: 100
+
+outputs:
+- name: Management_IP
+  value:
+    Fortigate_1: $(ref.Fortigate_Cluster.FGT1-mgmt-ip)
+    Fortigate_2: $(ref.Fortigate_Cluster.FGT2-mgmt-ip)
+- name: Default_Password
+  value: $(ref.Fortigate_Cluster.defaultPassword)
+- name: Service_IP
+  value: $(ref.{{prefix}}-{{properties.publicIPs[0].name}}.address)

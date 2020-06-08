@@ -1,0 +1,74 @@
+# This is an example configuration for GALEC
+
+imports:
+- path: https://raw.githubusercontent.com/40net-cloud/fortinet-gcp-solutions/refactor/gcp-dm/fortigate/ha-ap.jinja
+  name: ha-ap.jinja
+# link to real license files here (or upload them later manually)
+- path: ../../secrets/license1.lic
+  name: license1.lic
+- path: ../../secrets/license2.lic
+  name: license2.lic
+
+
+resources:
+# first, let's prepare internal network and subnet. This part should be deleted
+# in final config and is here for testing only
+- name: existing-host
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+- name: existing-host-transit
+  type: compute.v1.subnetwork
+  properties:
+    region: europe-west1
+    network: $(ref.existing-host.selfLink)
+    ipCidrRange: 10.70.0.0/26
+
+# next we create external VPC:
+- name: galectest4-ext
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+- name: galectest4-ext-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: europe-west1
+    network: $(ref.galectest4-ext.selfLink)
+    ipCidrRange: 10.0.0.0/26
+
+# Now it's time to deploy a Fortigates
+# Make sure you pass here URLs of existing internal VPC and subnet
+- name: fortigate-cluster
+  type: ha-ap.jinja
+  properties:
+    region: europe-west1
+    zones:
+    - europe-west1-b
+    - europe-west1-c
+    license:
+      type: byol
+      lics:
+      - license1.lic
+      - license2.lic
+    networks:
+      internal:
+# replace with existing internal VPC
+        vpc: $(ref.existing-host.selfLink)
+# replace with existing internal subnet
+        subnet: $(ref.existing-host-transit.selfLink)
+# missing ipCidrRange means port1 will get IP from DHCP. Uncomment the line below to assign statically 10.70.0.2 and 10.70.0.3
+        #ipCidrRange: 10.70.0.0/26
+      external:
+        vpc: $(ref.galectest4-ext.selfLink)
+        subnet: $(ref.galectest4-ext-subnet.selfLink)
+        ipCidrRange: 10.0.0.0/26
+# hasync and mgmt can now be created inside ha-ap.jinja, so it's enough to pass CIDR ranges
+      hasync:
+        ipCidrRange: 10.0.0.128/26
+      mgmt:
+        ipCidrRange: 10.0.0.192/26
+    routes: []
+
+outputs:
+- name: Fortigate Template Outputs
+  value: $(ref.fortigate-cluster)

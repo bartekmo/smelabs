@@ -1,0 +1,61 @@
+{% set prefix = properties.prefix|default(env.deployment) %}
+
+{% import "netcalc.jinja" as netcalc %}
+{% import "images.jinja" as images %}
+
+{% set firmwareImage=images.getFgtImage( properties.version, properties.license.type ) %}
+
+{% set defaultHasyncRange="10.254.254.0/25" %}
+{% set defaultMgmtRange="10.254.254.128/25" %}
+{% set defaultHasyncNetName="fgt-hasync" %}
+{% set defaultMgmtNetName="fgt-mgmt" %}
+
+resources:
+{% if not "vpc" in properties.networks.hasync %}
+- name: {{ prefix }}-{{ defaultHasyncNetName }}
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+{% set hasyncVpc="$(ref."~prefix~"-"~defaultHasyncNetName~".selfLink)" %}
+{% else %}
+{% set hasyncVpc=properties.networks.mgmt.vpc %}
+{% endif %}
+{% if not "vpc" in properties.networks.mgmt %}
+- name: {{ prefix }}-{{ defaultMgmtNetName }}
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+{% set mgmtVpc="$(ref."~prefix~"-"~defaultMgmtNetName~".selfLink)" %}
+{% else %}
+{% set mgmtVpc=properties.networks.mgmt.vpc %}
+{% endif %}
+
+{% if not "subnet" in properties.networks.hasync %}
+- name: {{ prefix }}-{{ defaultHasyncNetName }}-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: {{ properties.region }}
+    network: {{ hasyncVpc }}
+    {% if "ipCidrRange" in properties.networks.hasync %}
+    ipCidrRange: {{ properties.networks.hasync.ipCidrRange }}
+    {% else %}
+    ipCidrRange: {{ defaultHasyncRange }}
+    {% endif %}
+{% endif %}
+{% if not "subnet" in properties.networks.mgmt %}
+- name: {{ prefix }}-{{ defaultMgmtNetName }}-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: {{ properties.region }}
+    network: {{ mgmtVpc }}
+    {% if "ipCidrRange" in properties.networks.mgmt %}
+    ipCidrRange: {{ properties.networks.mgmt.ipCidrRange }}
+    {% else %}
+    ipCidrRange: {{ defaultMgmtRange }}
+    {% endif %}
+{% endif %}
+
+
+outputs:
+- name: dummy
+  value: dummy
