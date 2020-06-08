@@ -1,9 +1,10 @@
 imports:
-- path: hub/fortigate-security-hub.jinja
+- path: https://raw.githubusercontent.com/bartekmo/smelabs/master/lab2/hub/fortigate-security-hub.jinja
   name: fortigate-security-hub.jinja
-- path: fortigate/ha-ap-elb.jinja
+- path: https://raw.githubusercontent.com/bartekmo/smelabs/master/lab2/fortigate/ha-ap-elb.jinja
   name: fortigate.jinja
-- path: labservers.jinja
+- path: https://raw.githubusercontent.com/bartekmo/smelabs/master/lab2/labservers.jinja
+  name: labservers.jinja
 
 resources:
 - name: SecurityHub
