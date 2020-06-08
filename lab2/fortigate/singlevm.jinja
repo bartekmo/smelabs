@@ -213,6 +213,7 @@ resources:
       items:
        - {{prefix}}-fgt
        - fortigate
+       - {{ prefix }}-{{ fgname }}
 
 {% if properties.createCloudFirewallRules %}
 - name: {{ prefix }}-allow-internet-to-fgt
@@ -222,6 +223,7 @@ resources:
     priority: 100
     sourceRanges:
     - 0.0.0.0/0
+    disabled: "true"
     targetTags:
     - {{prefix}}-fgt
     allowed:
@@ -252,7 +254,6 @@ resources:
     priority: 10
     tags:
     - {{ prefix }}-fgt
-    - {{ prefix }}-{{ fgname }}
 {% endif %}
 {% for route in properties.routes %}
 - name: {{ prefix }}-{{ route.name | default( "route"~loop.index ) }}-via-fgt
