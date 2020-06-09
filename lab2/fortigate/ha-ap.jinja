@@ -205,18 +205,6 @@ resources:
     - {{ prefix }}-fgt
     allowed:
     - IPProtocol: TCP
-- name: {{ prefix }}-secure-ext
-  type: compute.v1.firewall
-  properties:
-    network: {{ properties.networks.external.vpc }}
-    priority: 100
-    direction: EGRESS
-    destinationRanges:
-    - 0.0.0.0/0
-    targetTags:
-    - {{ prefix }}-fgt2
-    denied:
-    - IPProtocol: TCP
 
 
 outputs:
