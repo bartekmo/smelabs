@@ -5,6 +5,11 @@ imports:
   name: fortigate.jinja
 - path: https://raw.githubusercontent.com/bartekmo/smelabs/master/lab2/labservers.jinja
   name: labservers.jinja
+- path: license1.lic
+  name: license1.lic
+- path: license2.lic
+  name: license2.lic
+
 
 resources:
 - name: SecurityHub
@@ -18,7 +23,10 @@ resources:
     fgtInstanceType: e2-highcpu-4
     version: 6.2.3
     license:
-      type: payg
+      type: byol
+      lics:
+      - license1.lic
+      - license2.lic
     spokeNetworks:
     - name: front
       ipCidrRange: 192.168.1.0/24
