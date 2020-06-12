@@ -10,7 +10,7 @@ resources:
       boot: true
       autoDelete: true
       initializeParams:
-        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200529
+        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200609
     networkInterfaces:
     - network: $(ref.{{ properties.prefix }}-front.selfLink)
       subnetwork: $(ref.{{ properties.prefix }}-front-subnet.selfLink)
@@ -37,7 +37,7 @@ resources:
       boot: true
       autoDelete: true
       initializeParams:
-        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200529
+        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200609
     networkInterfaces:
     - network: $(ref.{{ properties.prefix }}-back.selfLink)
       subnetwork: $(ref.{{ properties.prefix }}-back-subnet.selfLink)
