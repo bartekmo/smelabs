@@ -1,5 +1,5 @@
 
-{% set prefix = prefix|default(env.deployment) %}
+{% set prefix = properties.prefix|default(env.deployment) %}
 
 {% import "../utils/netcalc.jinja" as netcalc %}
 
