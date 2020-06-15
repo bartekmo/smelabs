@@ -1,6 +1,11 @@
 resources:
 - name: {{ properties.prefix}}-webserver
   type: compute.v1.instance
+  metadata:
+    dependsOn:
+    - {{ properties.prefix }}-peering-front-to-hub
+    - {{ properties.prefix }}-peering-hub-to-front
+    - {{ properties.prefix }}-fgt1
   properties:
     zone: {{ properties.region }}-b
     machineType: zones/{{ properties.region }}-b/machineTypes/f1-micro
