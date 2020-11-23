@@ -6,13 +6,14 @@ const Compute = require('@google-cloud/compute');
 
 const compute = new Compute();
 
-async function main() {
+function main() {
   const options = {
     maxResults: 3,
   };
-  const vms = await compute.getVMs(options);
-
-  vms[0].forEach((item) => console.log(item));
+  compute.getVMs(options)
+    .then((data) => {
+      data[0].forEach((item) => console.log(item));
+    })
 }
 
 main()
