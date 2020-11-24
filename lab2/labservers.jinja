@@ -15,7 +15,7 @@ resources:
       boot: true
       autoDelete: true
       initializeParams:
-        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20200609
+        sourceImage: projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20201111
     networkInterfaces:
     - network: $(ref.{{ properties.prefix }}-front.selfLink)
       subnetwork: $(ref.{{ properties.prefix }}-front-subnet.selfLink)
