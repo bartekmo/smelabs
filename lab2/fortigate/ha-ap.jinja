@@ -89,6 +89,7 @@ resources:
   properties:
     region: {{ properties.region }}
     zone: {{ properties.zones[ loop.index0 ]}}
+    prefix: {{ prefix }}
     instanceType: {{ properties.instanceType }}
     version: {{ properties.version }}
     name: fgt{{ loop.index }}
