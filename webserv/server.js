@@ -43,20 +43,43 @@ function generateHtml( outputData ) {
 }
 
 app.use( async (ctx, next) => {
+  ctx.state.output = new Array();
+
   await next();
-  console.log( ctx.state.output );
   ctx.body = generateHtml( ctx.state.output );
 })
 
+app.use( async (ctx, next) => {
+  await next();
+  return axios.get( "http://metadata.google.internal/computeMetadata/v1/instance/hostname", {timeout:500, headers:{ "Metadata-Flavor": "Google"}})
+    .then( async (res) => {
+	ctx.state.output.push({label: "Webserver hostname", data: res.data})	
+    })
+    .catch( err => {
+      console.log( 'Cannot connect to metadata. '+err );
+    })
+})
+
+app.use( async (ctx, next) => {
+  await next();
+  return axios.get( "http://10.0.2.2/", {timeout:500})
+	.then( res => {
+	  ctx.state.output.push({label: "Backend reacheable", data: "YES" });
+	})
+	.catch( err => {
+	  ctx.state.output.push({label: "Backend reacheable", data: '<div style="font-weight: bold; color: red;">NO</div>' });
+	})
+})
+
 app.use( async ctx => {
-  return axios.get('http://api.ipify.org', {timeout: 10}).then( response => {
-    if (!("output" in ctx.state )) {
-      console.log( 'init output');
-      ctx.state.output = new Array();
-    }
-    ctx.state.output.push({label:'Public IP', data: response.data});
-  })
-  //ctx.body = "hello world";
+  return axios.get('http://api.ipify.org', {timeout: 10000})
+	.then( response => {
+    	ctx.state.output.push({label:'Server egress IP', data: response.data});
+  	})
+	.catch( err => {
+	console.log( 'Cannot connect to ipify.'+err );
+	})
+
 });
 
 
