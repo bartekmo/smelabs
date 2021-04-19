@@ -1,0 +1,25 @@
+imports:
+- path: lab3.jinja
+- path: ../../FGVM04TM21001501.lic
+  name: lic1
+- path: ../../FGVM04TM21001502.lic
+  name: lic2
+
+resources:
+- name: Lab3
+  type: lab3.jinja
+  properties:
+    prefix: s00
+    license:
+      type: byol
+      lics:
+      - lic1
+      - lic2
+
+outputs:
+  - name: Management_IP
+    value: $(ref.Lab3.Management_IP)
+  - name: Default Password
+    value: $(ref.Lab3.Default_Password)
+  - name: Service IPs
+    value: $(ref.Lab3.Service_IPs)

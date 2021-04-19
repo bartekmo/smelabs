@@ -33,3 +33,7 @@ properties:
   region:
     type: string
     default: europe-west1
+  license:
+    type: object
+    default:
+      type: payg
