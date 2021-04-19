@@ -1,0 +1,60 @@
+{#
+Based on https://raw.githubusercontent.com/GoogleCloudPlatform/deploymentmanager-samples/master/examples/v2/container_vm/jinja/container_vm.jinja
+by Google
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+#}
+
+{% set COMPUTE_URL_BASE = 'https://www.googleapis.com/compute/v1/' %}
+{% set BASE_NAME = properties['prefix'] + '-web-frontsrv' %}
+
+{% macro GlobalComputeUrl(project, collection, name) -%}
+{{ COMPUTE_URL_BASE }}projects/{{ project }}/global/{{ collection }}/{{ name }}
+{%- endmacro %}
+
+{% macro ZonalComputeUrl(project, zone, collection, name) -%}
+{{ COMPUTE_URL_BASE }}projects/{{ project }}/zones/{{ zone }}/{{ collection }}/{{ name }}
+{%- endmacro %}
+
+resources:
+- name: {{ BASE_NAME }}
+  type: compute.v1.instance
+  metadata:
+    dependsOn: {{ properties.dependsOn }}
+  properties:
+    zone: {{ properties['zone'] }}
+    machineType: {{ ZonalComputeUrl(env['project'], properties['zone'], 'machineTypes', 'n1-standard-1') }}
+    metadata:
+      items:
+        - key: gce-container-declaration
+          value: |
+            apiVersion: v1
+            kind: Pod
+            metadata:
+                name: smewebserv
+            spec:
+                containers:
+                - name: smewebserv
+                  image: gcr.io/emea-sme-training-2020-275813/smewebserv:1.0.2
+                  imagePullPolicy: Always
+                  ports:
+                  - containerPort: 8080
+                    hostPort: 8080
+    disks:
+      - deviceName: boot
+        type: PERSISTENT
+        autoDelete: true
+        boot: true
+        initializeParams:
+          diskName: {{ BASE_NAME }}-disk
+          sourceImage: {{ GlobalComputeUrl('cos-cloud', 'images', properties['containerImage']) }}
+    networkInterfaces:
+    - network: projects/emea-sme-training-2020-275813/global/networks/{{ properties['prefix'] }}-{{ properties['network'] }}
+      subnetwork: projects/emea-sme-training-2020-275813/regions/{{ properties['region']}}/subnetworks/{{ properties['prefix'] }}-{{ properties['network'] }}-subnet
+    serviceAccounts:
+      - email: default
+        scopes:
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring.write
+

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: smewebserv
+spec:
+  containers:
+    - name: smewebserv
+      image: gcr.io/emea-sme-training-2020-275813/smewebserv:1.0.2
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 8080
+          hostPort: 8080

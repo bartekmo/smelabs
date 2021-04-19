@@ -1,0 +1,124 @@
+
+
+resources:
+- name: SecurityHub
+  type: fortigate-security-hub.jinja
+  properties:
+    prefix: {{ properties.prefix }}
+    region: {{ properties.region }}
+    zones:
+    - europe-west1-d
+    - europe-west1-c
+    fgtInstanceType: e2-highcpu-4
+    license:
+      type: payg
+    hubNetworks:
+      internal:
+        name: int
+        ipCidrRange: 192.168.0.64/26
+      external:
+        name: ext
+        ipCidrRange: 192.168.0.0/26
+      hasync:
+        name: hasync
+        ipCidrRange: 192.168.0.128/26
+      mgmt:
+        name: mgmt
+        ipCidrRange: 192.168.0.192/26
+    spokeNetworks:
+    - name: frontend
+      ipCidrRange: 10.0.1.0/24
+    - name: backend
+      ipCidrRange: 10.0.2.0/24
+    fwConfig: |
+      config firewall policy
+        edit 1
+        set name "outbound-allow"
+        set srcintf "port2"
+        set dstintf "port1"
+        set srcaddr "{{ properties.prefix }}-backend" "{{ properties.prefix }}-frontend"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set application-list "default"
+        set logtraffic all
+        set nat enable
+        next
+        edit 2
+        set name "smeweb-in-allow"
+        set srcintf "port1"
+        set dstintf "port2"
+        set srcaddr "all"
+        set dstaddr "smeweb-dnat"
+        set action accept
+        set schedule "always"
+        set service "TCP8080"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "default"
+        set ips-sensor "default"
+        set logtraffic all
+        next
+      end
+      config firewall vip
+        edit "smeweb-dnat"
+        set mappedip "10.0.1.2"
+        set extintf "port1"
+        set portforward enable
+        set extport 80
+        set mappedport 8080
+        next
+      end
+      config firewall service custom
+        edit "TCP8080"
+        set tcp-portrange 8080
+        next
+      end
+
+- name: webserver-frontend
+  type: smewebserv.jinja
+  properties:
+    prefix: {{ properties.prefix }}
+    network: frontend
+    dependsOn:
+    - {{ properties.prefix }}-peering-hub-to-frontend
+    - {{ properties.prefix }}-frontend-subnet
+    
+- name: {{properties.prefix }}-web-backend
+  type: compute.v1.instance
+  properties:
+    zone: europe-west1-d
+    machineType: zones/europe-west1-d/machineTypes/e2-micro
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        diskName: {{ properties.prefix }}-webserv-backend-disk
+        sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-9
+    networkInterfaces:
+    - network: /projects/{{ env["project"] }}/global/networks/{{ properties.prefix }}-backend
+      subnetwork: /projects/{{ env["project"] }}/regions/{{ properties.region }}/subnetworks/{{ properties.prefix }}-backend-subnet
+    metadata:
+      items:
+      - key: startup-script
+        value: |
+          apt update
+          apt install nginx -y
+  metadata:
+    dependsOn:
+    - {{ properties.prefix }}-peering-hub-to-backend
+    - {{ properties.prefix }}-backend-subnet
+
+
+outputs:
+  - name: Management_IP
+    value: $(ref.SecurityHub.Management_IP)
+  - name: Default Password
+    value: $(ref.SecurityHub.Default_Password)
+  - name: Service IPs
+    value: $(ref.SecurityHub.Service_IPs)

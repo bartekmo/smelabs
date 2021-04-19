@@ -1,0 +1,35 @@
+info:
+  title: SME Training Lab3 Hub
+  description: Deploys lab3 for the forti SME labs for Google Cloud.
+
+imports:
+- path: https://raw.githubusercontent.com/40net-cloud/fortinet-gcp-solutions/master/gcp-dm/hub/fortigate-security-hub.jinja
+  name: fortigate-security-hub.jinja
+- path: https://raw.githubusercontent.com/40net-cloud/fortinet-gcp-solutions/master/gcp-dm/fortigate/ha-ap-elbilb.jinja
+  name: fortigate.jinja
+- path: smewebserv.jinja
+
+requires:
+- prefix
+
+properties:
+  prefix:
+    type: string
+  zone:
+    description: Zone in which this VM will run
+    type: string
+    default: europe-west1-d
+  containerImage:
+    description: Name of the Google Cloud Container VM Image
+    type: string
+    default: family/cos-stable
+  containerManifest:
+    description: String containing the Container Manifest in YAML
+    type: string
+  network:
+    description: VPC Network to deploy to
+    type: string
+    default: projects/emea-sme-training-2020-275813/global/networks/default
+  region:
+    type: string
+    default: europe-west1

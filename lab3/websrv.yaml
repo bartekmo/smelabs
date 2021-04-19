@@ -1,0 +1,13 @@
+imports:
+- path: container_manifest.yaml
+  name: container_manifest
+- path: https://raw.githubusercontent.com/GoogleCloudPlatform/deploymentmanager-samples/master/examples/v2/container_vm/jinja/container_vm.jinja
+  name: container_vm.jinja
+
+resources:
+  - name: my-container-vm
+    type: container_vm.jinja
+    properties:
+      zone: europe-west1-b
+      containerImage: family/cos-stable
+      containerManifest: container_manifest

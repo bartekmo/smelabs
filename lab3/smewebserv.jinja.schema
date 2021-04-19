@@ -1,0 +1,29 @@
+info:
+  title: Container VM
+  description: Creates a Container VM with the provided Container manifest.
+
+requires:
+- prefix
+- network
+
+properties:
+  prefix:
+    type: string
+  zone:
+    description: Zone in which this VM will run
+    type: string
+    default: europe-west1-d
+  containerImage:
+    description: Name of the Google Cloud Container VM Image
+    type: string
+    default: family/cos-stable
+  containerManifest:
+    description: String containing the Container Manifest in YAML
+    type: string
+  network:
+    description: VPC Network to deploy to
+    type: string
+    default: projects/emea-sme-training-2020-275813/global/networks/default
+  region:
+    type: string
+    default: europe-west1
