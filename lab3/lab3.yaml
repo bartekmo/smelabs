@@ -9,7 +9,7 @@ resources:
 - name: Lab3
   type: lab3.jinja
   properties:
-    prefix: s00
+    prefix: [PREFIX]
     license:
       type: byol
       lics:
